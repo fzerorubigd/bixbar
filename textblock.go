@@ -35,16 +35,16 @@ func (tb textBlock) Align() Align {
 	return Align("left")
 }
 
-func (tb textBlock) Color() (Color, bool) {
-	return Color{}, false
+func (tb textBlock) Color() (*Color, bool) {
+	return nil, false
 }
 
-func (tb textBlock) Background() (Color, bool) {
-	return Color{}, false
+func (tb textBlock) Background() (*Color, bool) {
+	return nil, false
 }
 
-func (tb textBlock) Border() (Color, bool) {
-	return Color{}, false
+func (tb textBlock) Border() (*Color, bool) {
+	return nil, false
 }
 
 func (tb textBlock) Separator() bool {

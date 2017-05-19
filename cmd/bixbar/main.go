@@ -1,21 +1,67 @@
 package main
 
 import (
-	"os"
 	"os/signal"
-	"syscall"
+	"path/filepath"
+
+	"log"
+
+	"os"
 	"time"
 
-	"github.com/fzerorubigd/bixbar"
+	"syscall"
+
+	"github.com/fzerorubigd/expand"
+	"github.com/ogier/pflag"
+	_ "gopkg.in/fzerorubigd/onion.v3/yamlloader"
+)
+
+var (
+	pd *string
 )
 
 func main() {
-	bar := bixbar.NewBar(time.Second, os.Stdout, os.Stdin)
-	bar.AddBlock(bixbar.NewTextBlock("Example", "text", "ins"))
+	pflag.Parse()
+
+	o, err := loadConfigs()
+	if err != nil {
+		log.Fatal(err)
+	}
+	dir := o.GetStringSlice("plugin.folder")
+	pm, err := loadPlugins(o, dir...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	data, err := getBlocks(o)
+	if err != nil {
+		log.Fatal(err)
+	}
+	refresh := o.GetDurationDefault("bixbar.refresh", time.Second)
+	bar := NewBar(refresh, os.Stdout, os.Stdin)
+	for i := range data {
+		b, name, ins, err := pm.createInstance(i, data[i])
+		if err != nil {
+			log.Fatal(err)
+		}
+		bar.AddBlock(name, ins, b)
+	}
+
 	bar.Start()
+
 	quit := make(chan os.Signal, 6)
 	signal.Notify(quit, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGQUIT, syscall.SIGINT)
 	<-quit
 
 	bar.Stop()
+}
+
+func init() {
+	pwd, _ := expand.Pwd()
+	pd = pflag.StringP(
+		"plugin-folder",
+		"p",
+		filepath.Join(pwd, "plugins"),
+		"the plugin folder. all file with so extension are loaded in this directory",
+	)
 }

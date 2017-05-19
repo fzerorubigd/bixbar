@@ -28,11 +28,11 @@ type SimpleBlock interface {
 	// if the card is not associated with any network and in green or yellow (depending on the
 	// signal strength) when it is associated. Colors are specified in hex (like in HTML),
 	// starting with a leading hash sign. For example, #ff0000 means red.
-	Color() (Color, bool)
+	Color() (*Color, bool)
 	// Overrides the background color for this particular block.
-	Background() (Color, bool)
+	Background() (*Color, bool)
 	// Overrides the border color for this particular block.
-	Border() (Color, bool)
+	Border() (*Color, bool)
 	// Separator A boolean which specifies whether a separator line should be drawn after this block.
 	// The default is true, meaning the separator line will be drawn. Note that if you disable the
 	// separator line, there will still be a gap after the block, unless you also use separator_block_width
@@ -52,13 +52,6 @@ type SimpleBlock interface {
 
 type InteractiveBlock interface {
 	SimpleBlock
-	// Name  Every block should have a unique name (string) entry so that it can be easily identified in
-	// scripts which process the output. i3bar completely ignores the name and instance fields.
-	// Make sure to also specify an instance (string) entry where appropriate.
-	// For example, the user can have multiple disk space blocks for multiple mount points.
-	Name() string
-	// Instance see Name()
-	Instance() string
 	// Click is called when the block is clicked. the first two argument is X11 root window coordinates where the
 	// click occurred and the Button is the button clicked on block
 	Click(int, int, Button)

@@ -1,4 +1,4 @@
-package bixbar
+package main
 
 import (
 	"encoding/json"
@@ -9,37 +9,48 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/fzerorubigd/bixbar"
 )
 
 // Bar is a single bar in system
 type Bar interface {
-	AddBlock(SimpleBlock)
+	AddBlock(string, string, bixbar.SimpleBlock)
 
 	Start()
 
 	Stop()
 }
 
+type singleBlock struct {
+	name, ins string
+	bl        bixbar.SimpleBlock
+}
+
 type bar struct {
 	lock   sync.RWMutex
-	blocks []SimpleBlock
+	blocks []singleBlock
 	stop   bool
 	tick   time.Duration
 	reader io.Reader
 	writer io.Writer
 
-	iblocks map[string]InteractiveBlock
+	iBlocks map[string]bixbar.InteractiveBlock
 
 	close chan struct{}
 }
 
-func (b *bar) AddBlock(l SimpleBlock) {
+func (b *bar) AddBlock(name, ins string, l bixbar.SimpleBlock) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	b.blocks = append(b.blocks, l)
-	if ib, ok := l.(InteractiveBlock); ok {
-		b.iblocks[fmt.Sprintf("%s-%s", ib.Name(), ib.Instance())] = ib
+	b.blocks = append(b.blocks, singleBlock{
+		name: name,
+		ins:  ins,
+		bl:   l,
+	})
+	if ib, ok := l.(bixbar.InteractiveBlock); ok {
+		b.iBlocks[fmt.Sprintf("%s-%s", name, ins)] = ib
 	}
 }
 
@@ -72,7 +83,7 @@ func (b *bar) callClick(c click) {
 	b.lock.RLock()
 	defer b.lock.RUnlock()
 
-	if ib, ok := b.iblocks[fmt.Sprintf("%s-%s", c.Name, c.Instance)]; ok {
+	if ib, ok := b.iBlocks[fmt.Sprintf("%s-%s", c.Name, c.Instance)]; ok {
 		ib.Click(c.X, c.Y, c.Button)
 	}
 }
@@ -98,6 +109,8 @@ func (b *bar) readLoop() {
 			break
 		}
 		b.callClick(c)
+		// Update the bar, since there is a chance that the bar needs to change
+		b.write(true)
 	}
 }
 
@@ -111,28 +124,28 @@ func (b *bar) write(comma bool) {
 	var all = make([]block, len(b.blocks))
 	for i := range b.blocks {
 		bl := block{
-			FullText:            b.blocks[i].FullText(),
-			ShortText:           b.blocks[i].ShortText(),
-			Separator:           b.blocks[i].Separator(),
-			Markup:              b.blocks[i].Markup(),
-			Align:               b.blocks[i].Align(),
-			MinWidth:            b.blocks[i].MinWidth(),
-			SeparatorBlockWidth: b.blocks[i].SeparatorBlockWidth(),
-			Urgent:              b.blocks[i].Urgent(),
+			FullText:            b.blocks[i].bl.FullText(),
+			ShortText:           b.blocks[i].bl.ShortText(),
+			Separator:           b.blocks[i].bl.Separator(),
+			Markup:              b.blocks[i].bl.Markup(),
+			Align:               b.blocks[i].bl.Align(),
+			MinWidth:            b.blocks[i].bl.MinWidth(),
+			SeparatorBlockWidth: b.blocks[i].bl.SeparatorBlockWidth(),
+			Urgent:              b.blocks[i].bl.Urgent(),
 		}
-		if c, ok := b.blocks[i].Color(); ok {
+		if c, ok := b.blocks[i].bl.Color(); ok {
 			bl.Color = c.String()
 		}
-		if c, ok := b.blocks[i].Background(); ok {
+		if c, ok := b.blocks[i].bl.Background(); ok {
 			bl.Background = c.String()
 		}
-		if c, ok := b.blocks[i].Border(); ok {
+		if c, ok := b.blocks[i].bl.Border(); ok {
 			bl.Border = c.String()
 		}
 
-		if ib, ok := b.blocks[i].(InteractiveBlock); ok {
-			bl.Name = ib.Name()
-			bl.Instance = ib.Instance()
+		if _, ok := b.blocks[i].bl.(bixbar.InteractiveBlock); ok {
+			bl.Name = b.blocks[i].name
+			bl.Instance = b.blocks[i].ins
 		}
 		all[i] = bl
 	}
@@ -200,7 +213,7 @@ func (b *bar) Stop() {
 // NewBar create a bar and start it
 func NewBar(d time.Duration, out io.Writer, in io.Reader) Bar {
 	res := &bar{
-		iblocks: make(map[string]InteractiveBlock),
+		iBlocks: make(map[string]bixbar.InteractiveBlock),
 		tick:    d,
 		writer:  out,
 	}

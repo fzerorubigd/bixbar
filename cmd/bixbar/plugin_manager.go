@@ -7,6 +7,8 @@ import (
 
 	"fmt"
 
+	"os"
+
 	"github.com/fzerorubigd/bixbar"
 	"gopkg.in/fzerorubigd/onion.v3"
 )
@@ -98,7 +100,8 @@ func loadPlugins(cfg *onion.Onion, dir ...string) (*pluginManager, error) {
 			}
 
 			s.obj = s.fn()
-			s.obj.Initialize()
+			// TODO : use proper io.Writer
+			s.obj.Initialize(os.Stdout)
 
 			n := s.obj.Name()
 			pm.plugins[n] = s

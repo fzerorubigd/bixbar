@@ -2,8 +2,9 @@ package bixbar
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 )
 
 // Align is the align string
@@ -57,22 +58,23 @@ func (b Button) String() string {
 
 // MarshalJSON is the custom marshaller
 func (m Markup) MarshalJSON() ([]byte, error) {
+	var re string = "none"
 	switch m {
 	case "pango", "none":
-		return []byte(fmt.Sprintf(`"%s"`, m)), nil
+		re = string(m)
 	}
 
-	return nil, errors.New("invalid value, valids are pango,none")
+	return []byte(fmt.Sprintf(`"%s"`, re)), nil
 }
 
 // MarshalJSON is the custom marshaller
 func (a Align) MarshalJSON() ([]byte, error) {
+	var re string = "left"
 	switch a {
 	case "center", "right", "left":
-		return []byte(fmt.Sprintf(`"%s"`, a)), nil
+		re = string(a)
 	}
-
-	return nil, errors.New("invalid value, valids are center,right,left")
+	return []byte(fmt.Sprintf(`"%s"`, re)), nil
 }
 
 // MarshalJSON is the custom marshaller
@@ -88,7 +90,29 @@ func (c Color) String() string {
 // MarshalJSON is the custom marshaller
 func (si StringInt) MarshalJSON() ([]byte, error) {
 	if si.String != "" {
+		// for handling special case, Using the original marshal is very better
 		return json.Marshal(si.String)
 	}
 	return []byte(fmt.Sprint(si.Int)), nil
+}
+
+var colorStr = regexp.MustCompile("^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$")
+
+// NewColor from string
+func NewColor(s string) (*Color, error) {
+	parts := colorStr.FindStringSubmatch(s)
+	if len(parts) != 4 {
+		return nil, fmt.Errorf("the %s is not a valid color. use the #AABBCC format", s)
+	}
+	toByte := func(in string) uint8 {
+		i, _ := strconv.ParseInt(in, 16, 8)
+		return byte(i)
+	}
+	res := Color{
+		R: toByte(parts[1]),
+		G: toByte(parts[2]),
+		B: toByte(parts[3]),
+	}
+
+	return &res, nil
 }

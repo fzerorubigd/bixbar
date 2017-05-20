@@ -1,9 +1,11 @@
 package bixbar
 
+import "io"
+
 // Plugin is the block plugin
 type Plugin interface {
-	// Initialize the plugin. called right after loading th plugin
-	Initialize()
+	// Initialize the plugin. called right after loading th plugin, the writer is fro log.
+	Initialize(io.Writer)
 	// Name is the plugin name, must be unique
 	Name() string
 	// Blocks return the available block for this plugin, each name in array

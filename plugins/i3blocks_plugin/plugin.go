@@ -87,6 +87,9 @@ func (sb *shellBlock) MinWidth() bixbar.StringInt {
 
 	min := sb.output[minWidth]
 
+	if min == "" {
+		return bixbar.StringInt{}
+	}
 	if i, err := strconv.ParseInt(min, 10, 32); err == nil {
 		return bixbar.StringInt{Int: int(i)}
 	}

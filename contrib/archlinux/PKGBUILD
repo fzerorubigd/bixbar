@@ -1,0 +1,37 @@
+# Maintainer: FzerorubigD <fzerorubigd {AT} GMail {DOT} com>
+pkgname=bixbar-git
+pkgver=33.9c633d7
+pkgrel=1
+pkgdesc="i3bar configuration manager"
+arch=('i686' 'x86_64' 'armv5tel' 'armv6l' 'armv71')
+url="https://github.com/fzerorubigd/bixbar"
+license=('GPL3')
+depends=()
+makedepends=('go>=1.8' 'git')
+source=('git://github.com/fzerorubigd/bixbar.git')
+
+sha1sums=('SKIP')
+
+_gitname=bixbar
+
+pkgver() {
+        cd "${srcdir}/${_gitname}"
+        echo "$(git rev-list --count HEAD).$(git rev-parse --short HEAD)"
+}
+
+build() {
+	mkdir -p ${srcdir}/src/github.com/fzerorubigd/bixbar
+        cd "${srcdir}/${_gitname}"
+	git --work-tree=${srcdir}/src/github.com/fzerorubigd/bixbar checkout -f master
+	cd ${srcdir}/src/github.com/fzerorubigd/bixbar
+	GOPATH=${srcdir} go get -v ./...
+	GOPATH=${srcdir} go build -buildmode=plugin ./plugins/i3blocks_plugin
+	GOPATH=${srcdir} go build -buildmode=plugin ./plugins/static_plugin
+}
+
+package() {
+  mkdir -p $pkgdir/usr/bin
+  mkdir -p $pkgdir/usr/bin/bixbar_plugins
+  install -m755 $srcdir/bin/bixbar $pkgdir/usr/bin/bixbar
+  install -Dm644 ${srcdir}/src/github.com/fzerorubigd/bixbar/*.so $pkgdir/usr/bin/bixbar_plugins/
+}

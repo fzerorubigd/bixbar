@@ -1,6 +1,5 @@
 export ROOT=$(realpath $(dir $(firstword $(MAKEFILE_LIST))))
-all:
-	$(BUILD)
+all: bixbar static i3blocks
 
 bixbar:
 	cd $(ROOT)/cmd/bixbar && go build
@@ -11,7 +10,6 @@ static:
 i3blocks:
 	cd $(ROOT)/plugins/i3blocks_plugin && go build -buildmode=plugin
 
-
-install: bixbar static i3blocks
+install: all
 	mkdir -p ~/.bixbar/plugins
 	cp $(ROOT)/plugins/*/*.so ~/.bixbar/plugins

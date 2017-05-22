@@ -15,10 +15,11 @@ import (
 
 // Bar is a single bar in system
 type Bar interface {
+	// AddBlock add a new block to bar with name and instance
 	AddBlock(string, string, bixbar.SimpleBlock)
-
+	// Start the loop
 	Start()
-
+	// Stop the loop
 	Stop()
 }
 

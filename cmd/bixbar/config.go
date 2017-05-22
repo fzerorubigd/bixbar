@@ -25,7 +25,7 @@ func loadConfigs() (*onion.Onion, error) {
 
 	pluginDir := []string{
 		filepath.Join(home, ".bixbar", "plugins"),
-		filepath.Join(pwd, "plugins"),
+		filepath.Join(pwd, "bixbar_plugins"),
 	}
 
 	def := onion.NewDefaultLayer()

@@ -101,7 +101,7 @@ func loadPlugins(cfg *onion.Onion, dir ...string) (*pluginManager, error) {
 
 			s.obj = s.fn()
 			// TODO : use proper io.Writer
-			s.obj.Initialize(os.Stdout)
+			s.obj.Initialize(os.Stderr)
 
 			n := s.obj.Name()
 			pm.plugins[n] = s

@@ -1,0 +1,18 @@
+pkgbase = bixbar-git
+	pkgdesc = i3bar configuration manager
+	pkgver = 3.a855351
+	pkgrel = 1
+	url = https://github.com/fzerorubigd/bixbar
+	arch = i686
+	arch = x86_64
+	arch = armv5tel
+	arch = armv6l
+	arch = armv71
+	license = GPL3
+	makedepends = go>=1.8
+	makedepends = git
+	source = git://github.com/fzerorubigd/bixbar.git
+	sha1sums = SKIP
+
+pkgname = bixbar-git
+

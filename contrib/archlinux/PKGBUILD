@@ -1,6 +1,6 @@
 # Maintainer: FzerorubigD <fzerorubigd {AT} GMail {DOT} com>
 pkgname=bixbar-git
-pkgver=33.9c633d7
+pkgver=3.a855351
 pkgrel=1
 pkgdesc="i3bar configuration manager"
 arch=('i686' 'x86_64' 'armv5tel' 'armv6l' 'armv71')
@@ -15,18 +15,19 @@ sha1sums=('SKIP')
 _gitname=bixbar
 
 pkgver() {
-        cd "${srcdir}/${_gitname}"
-        echo "$(git rev-list --count HEAD).$(git rev-parse --short HEAD)"
+	cd "${srcdir}/${_gitname}"
+	echo "$(git rev-list --count HEAD).$(git rev-parse --short HEAD)"
 }
 
 build() {
 	mkdir -p ${srcdir}/src/github.com/fzerorubigd/bixbar
-        cd "${srcdir}/${_gitname}"
+	cd "${srcdir}/${_gitname}"
 	git --work-tree=${srcdir}/src/github.com/fzerorubigd/bixbar checkout -f master
 	cd ${srcdir}/src/github.com/fzerorubigd/bixbar
 	GOPATH=${srcdir} go get -v ./...
 	GOPATH=${srcdir} go build -buildmode=plugin ./plugins/i3blocks_plugin
 	GOPATH=${srcdir} go build -buildmode=plugin ./plugins/static_plugin
+	GOPATH=${srcdir} go build -buildmode=plugin ./plugins/psutil_plugin
 }
 
 package() {
